@@ -89,7 +89,12 @@ module ActiveRecord
         end
 
         def find_target?
-          !loaded? && foreign_key_present? && klass
+          # TODO 1: We might need to put this under a deprecation workflow.
+          # TODO 2: Perhaps we should move this raise to a overriden :find_target method, since this a predicate method?
+          #         On the other hand, this method is already expected to raise errors from the 'klass' reference.
+          raise ActiveRecord::MissingForeignKey.new(reflection.foreign_key, owner.class) unless foreign_key_column_present?
+
+          !loaded? && klass && foreign_key_present?
         end
 
         def require_counter_update?
@@ -106,6 +111,10 @@ module ActiveRecord
 
         def foreign_key_present?
           owner._read_attribute(reflection.foreign_key)
+        end
+
+        def foreign_key_column_present?
+          owner.class.column_names.include?(reflection.foreign_key)
         end
 
         # NOTE - for now, we're only supporting inverse setting from belongs_to back onto

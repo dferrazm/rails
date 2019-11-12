@@ -300,6 +300,25 @@ module ActiveRecord
     end
   end
 
+  # TODO: change to specific belongs_to error
+  # Raised when a foreign key is needed, but not specified in the schema or model.
+  class MissingForeignKey < ActiveRecordError
+    attr_reader :model
+
+    def initialize(foreign_key, model = nil, description = nil)
+      if model
+        @model = model
+
+        message = "Missing foreign key #{model.table_name}.#{foreign_key} in model #{model}."
+        message += "\n#{description}" if description
+
+        super(message)
+      else
+        super("Missing foreign key #{foreign_key}.")
+      end
+    end
+  end
+
   # Raised when a relation cannot be mutated because it's already loaded.
   #
   #   class Task < ActiveRecord::Base
